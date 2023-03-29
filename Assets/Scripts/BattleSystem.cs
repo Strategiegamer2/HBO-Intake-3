@@ -29,6 +29,8 @@ public class BattleSystem : MonoBehaviour
 	public Button HealButton;
 	public GameObject canvas;
 
+	public float critChance = 0.05f;
+
 	Unit playerUnit;
 	Unit enemyUnit;
 
@@ -49,7 +51,7 @@ public class BattleSystem : MonoBehaviour
 	IEnumerator SetupBattle()
 	{
 
-		GameObject playerGO = Instantiate(playerPrefab, playerBattleStation);
+		GameObject playerGO = Instantiate(playerPrefab, playerBattleStation.position, Quaternion.identity);
 		playerUnit = playerGO.GetComponent<Unit>();
 
 		int index = Random.Range(0, pokemonPrefabs.Length); // Choose a random index from the array
@@ -70,75 +72,82 @@ public class BattleSystem : MonoBehaviour
 
 	IEnumerator PlayerAttack()
 	{
-		AttackButton.gameObject.SetActive(false);
-		HealButton.gameObject.SetActive(false);
-		bool isDead = enemyUnit.TakeDamage(playerUnit.damage);
-
-		pokemonHUD.SetHP(enemyUnit.currentHP);
-		dialogueText.text = "The attack is successful!";
-
-		yield return new WaitForSeconds(2f);
-
-		if (isDead)
-		{
-			pokemonFill.gameObject.SetActive(false);
-			state = BattleState.WON;
-			EndBattle();
-		}
-		else
-		{
-
+		float randomNum = Random.Range(0f, 1f);
+		float missChange = 0.05f; 
+		if (randomNum < missChange)
+        {
+			dialogueText.text = "The Attack missed!";
+			yield return new WaitForSeconds(2f);
 			state = BattleState.ENEMYTURN;
 			StartCoroutine(EnemyTurn());
+			yield break;
+		}
+        else
+        {
+			AttackButton.gameObject.SetActive(false);
+			HealButton.gameObject.SetActive(false);
+			bool isDead = enemyUnit.TakeDamage(playerUnit.damage);
+
+			pokemonHUD.SetHP(enemyUnit.currentHP);
+			dialogueText.text = "The attack is successful!";
+
+			yield return new WaitForSeconds(2f);
+
+			if (isDead)
+			{
+				pokemonFill.gameObject.SetActive(false);
+				state = BattleState.WON;
+				EndBattle();
+			}
+			else
+			{
+
+				state = BattleState.ENEMYTURN;
+				StartCoroutine(EnemyTurn());
+			}
 		}
 	}
 
-	IEnumerator KatanaAttack()
+	IEnumerator ThunderStrikeAttack()
 	{
-		AttackButton.gameObject.SetActive(false);
-		HealButton.gameObject.SetActive(false);
-		bool isDead = enemyUnit.TakeKatanaDamage(playerUnit.KatanaDamage);
-
-		pokemonHUD.SetHP(enemyUnit.currentHP);
-		dialogueText.text = "The attack is successful!";
-
-		yield return new WaitForSeconds(2f);
-
-		if (isDead)
+		float randomNum = Random.Range(0f, 1f);
+		float missChange = 0.1f;
+		int damage;
+		if (randomNum < missChange)
 		{
-			state = BattleState.WON;
-			EndBattle();
-		}
-		else
-		{
+			dialogueText.text = "The Attack missed!";
+			yield return new WaitForSeconds(2f);
 			state = BattleState.ENEMYTURN;
 			StartCoroutine(EnemyTurn());
+			yield break;
+		}
+        else
+        {
+			AttackButton.gameObject.SetActive(false);
+			HealButton.gameObject.SetActive(false);
+			if (randomNum < critChance)
+				damage = playerUnit.ThunderStrikeDamage * 2;
+			else
+				damage = playerUnit.ThunderStrikeDamage;
+
+			bool isDead = enemyUnit.TakeThunderStrikeaDamage(damage);
+			pokemonHUD.SetHP(enemyUnit.currentHP);
+			dialogueText.text = "The attack is successful!";
+
+			yield return new WaitForSeconds(2f);
+
+			if (isDead)
+			{
+				state = BattleState.WON;
+				EndBattle();
+			}
+			else
+			{
+				state = BattleState.ENEMYTURN;
+				StartCoroutine(EnemyTurn());
+			}
 		}
 	}
-
-	IEnumerator PlaneAttack()
-	{
-		AttackButton.gameObject.SetActive(false);
-		HealButton.gameObject.SetActive(false);
-		bool isDead = enemyUnit.TakePlaneDamage(playerUnit.PlaneDamage);
-
-		pokemonHUD.SetHP(enemyUnit.currentHP);
-		dialogueText.text = "The attack is successful!";
-
-		yield return new WaitForSeconds(2f);
-
-		if (isDead)
-		{
-			state = BattleState.WON;
-			EndBattle();
-		}
-		else
-		{
-			state = BattleState.ENEMYTURN;
-			StartCoroutine(EnemyTurn());
-		}
-	}
-
 	IEnumerator EnemyTurn()
 	{
 		dialogueText.text = enemyUnit.unitName + " attacks!";
@@ -195,7 +204,6 @@ public class BattleSystem : MonoBehaviour
 
 		AttackButton.gameObject.SetActive(true);
 		HealButton.gameObject.SetActive(true);
-
 	}
 
 	IEnumerator PlayerHeal()
@@ -221,22 +229,13 @@ public class BattleSystem : MonoBehaviour
 		StartCoroutine(PlayerAttack());
 	}
 
-	public void OnKatanaButton()
+	public void OnThunderStrikeButton()
 	{
 		if (state != BattleState.PLAYERTURN)
 			return;
 
-		StartCoroutine(KatanaAttack());
+		StartCoroutine(ThunderStrikeAttack());
 	}
-
-	public void OnPlaneButton()
-	{
-		if (state != BattleState.PLAYERTURN)
-			return;
-
-		StartCoroutine(PlaneAttack());
-	}
-
 	public void OnHealButton()
 	{
 		if (state != BattleState.PLAYERTURN)

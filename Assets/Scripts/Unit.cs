@@ -10,7 +10,7 @@ public class Unit : MonoBehaviour
 	public int unitLevel;
 
 	public int damage;
-	public int KatanaDamage;
+	public int ThunderStrikeDamage;
 	public int PlaneDamage;
 
 	public int maxHP;
@@ -26,9 +26,9 @@ public class Unit : MonoBehaviour
 			return false;
 	}
 
-	public bool TakeKatanaDamage(int KatanaDamage)
+	public bool TakeThunderStrikeaDamage(int ThunderStrikeDamage)
 	{
-		currentHP -= KatanaDamage;
+		currentHP -= ThunderStrikeDamage;
 
 		if (currentHP <= 0)
 			return true;
